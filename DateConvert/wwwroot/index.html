@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המרת תאריך לועזי לעברי</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        input[type="date"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #eef6fc;
+            border-radius: 8px;
+            display: none;
+        }
+        .hebrew-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #005a9e;
+            margin: 10px 0;
+        }
+        .error {
+            color: #d9534f;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>המרת תאריך לועזי לעברי</h2>
+    <input type="date" id="dateInput" />
+    <button onclick="convertDate()">המר תאריך</button>
+
+    <div id="errorBox" class="error"></div>
+
+    <div id="result">
+        <div>התאריך העברי:</div>
+        <div class="hebrew-text" id="hebrewOutput"></div>
+        <div id="englishOutput" style="color: #555; font-size: 14px;"></div>
+        <div id="eventsOutput" style="color: #2e7d32; font-size: 14px; margin-top: 8px;"></div>
+    </div>
+</div>
+
+<script>
+    // Set today's date as default
+    document.getElementById('dateInput').valueAsDate = new Date();
+
+    async function convertDate() {
+        const dateVal = document.getElementById('dateInput').value;
+        const resultBox = document.getElementById('result');
+        const errorBox = document.getElementById('errorBox');
+
+        resultBox.style.display = 'none';
+        errorBox.style.display = 'none';
+
+        if (!dateVal) {
+            errorBox.innerText = "נא לבחור תאריך.";
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/convert?date=${dateVal}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                errorBox.innerText = data.error || "אירעה שגיאה בהמרת התאריך.";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            document.getElementById('hebrewOutput').innerText = data.hebrewDate;
+            document.getElementById('englishOutput').innerText = `(${data.hebrewParts})`;
+
+            if (data.events && data.events.length > 0) {
+                document.getElementById('eventsOutput').innerText = "אירועים: " + data.events.join(", ");
+            } else {
+                document.getElementById('eventsOutput').innerText = "";
+            }
+
+            resultBox.style.display = 'block';
+        } catch (err) {
+            errorBox.innerText = "שגיאת תקשורת מול השרת.";
+            errorBox.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
